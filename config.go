@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Elasticsearch struct {
 		Hostname string `yaml:"hostname"`
-		Port string `yaml:"port"`
+		Port     string `yaml:"port"`
 	}
 	Server struct {
 		Hostname string `yaml:"hostname"`

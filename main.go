@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/mux"
 	"github.com/olivere/elastic/v7"
 	"log"
@@ -22,12 +23,12 @@ type StatusBlob struct {
 	ServiceName string         `json:"serviceName"`
 	Status      string         `json:"status"`
 	History     []StatusReport `json:"history"`
-}	
+}
 
 type StatusReport struct {
 	Timestamp time.Time `json:"@timestamp"`
-	Up int64 `json:"up"`
-	Down int64 `json:"down"`
+	Up        int64     `json:"up"`
+	Down      int64     `json:"down"`
 }
 
 type Service struct {
@@ -41,6 +42,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", printMessage)
 	r.HandleFunc("/status", getStatusCheckData)
+	r.Use(loggingMiddleware)
 
 	config := configuration.loadConfig()
 
@@ -48,6 +50,15 @@ func main() {
 	fmt.Printf("Starting server @ %s\n", serverAddress)
 
 	http.ListenAndServe(serverAddress, r)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m := httpsnoop.CaptureMetrics(next, w, r)
+
+		log.Printf("%s %s %s %v %s", r.RemoteAddr, r.Method, r.RequestURI, r.Header.Get("User-Agent"), m.Duration)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func createEsClient() *elastic.Client {
@@ -82,8 +93,7 @@ func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
 	config := configuration.loadConfig()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	
+
 	response := StatusResponse{}
 
 	for _, service := range config.Services {
@@ -152,7 +162,7 @@ func parseResult(result *elastic.SearchResult, response *StatusBlob) {
 		}
 
 		update := StatusReport{}
-		update.Timestamp = time.Unix(int64(item.Key.(float64) / 1000.0), 0)
+		update.Timestamp = time.Unix(int64(item.Key.(float64)/1000.0), 0)
 
 		for _, subItem := range subAgg.Buckets {
 			if subItem.Key == "up" {
