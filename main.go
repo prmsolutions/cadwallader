@@ -9,6 +9,7 @@ import (
 	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/mux"
 	"github.com/olivere/elastic/v7"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -63,7 +64,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		m := httpsnoop.CaptureMetrics(next, w, r)
 
 		log.Printf("%s %s %s %v %s", r.RemoteAddr, r.Method, r.RequestURI, r.Header.Get("User-Agent"), m.Duration)
-		next.ServeHTTP(w, r)
 	})
 }
 
@@ -93,25 +93,6 @@ func createEsClient() *elastic.Client {
 	}
 
 	return es
-}
-
-func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
-	config := configuration.loadConfig(configPath)
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	response := StatusResponse{}
-
-	for _, service := range config.Services {
-		serviceBlob := computeServiceUptime(service.Name, service.Index)
-		response.Services = append(response.Services, serviceBlob)
-	}
-
-	err := json.NewEncoder(w).Encode(response)
-
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
 }
 
 func computeServiceUptime(domain string, index string) StatusBlob {
@@ -183,6 +164,35 @@ func parseResult(result *elastic.SearchResult, response *StatusBlob) {
 	}
 }
 
+func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
+	config := configuration.loadConfig(configPath)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	response := StatusResponse{}
+
+	for _, service := range config.Services {
+		serviceBlob := computeServiceUptime(service.Name, service.Index)
+		response.Services = append(response.Services, serviceBlob)
+	}
+
+	err := json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+}
+
 func printMessage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Cadwallader is running!")
+	config := configuration.loadConfig(configPath)
+	response := StatusResponse{}
+
+	for _, service := range config.Services {
+		serviceBlob := computeServiceUptime(service.Name, service.Index)
+		response.Services = append(response.Services, serviceBlob)
+	}
+
+	tmpl := template.Must(template.ParseFiles("templates/status.html"))
+
+	tmpl.Execute(w, response)
 }
