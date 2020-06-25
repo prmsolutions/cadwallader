@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cadwallader-config
+  namespace: production
+  labels:
+    k8s-app: cadwallader
+data:
+  config.yml: |-
+    elasticsearch:
+      hostname: localhost
+      port: 9200
+    server:
+      hostname: localhost
+      port: 8100
+    services:
+      - name: example.com
+        index: heartbeat*
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cadwallader
+  namespace: production
+  labels:
+    app: cadwallader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cadwallader
+  template:
+    metadata:
+      labels:
+        app: cadwallader
+    spec:
+      containers:
+        - name: cadwallader
+          image: gcr.io/proton-270018/cadwallader:ff4454254056934a8fb026002b11b913d89b4a46
+          command: ["./main"]
+          args: ["-c", "/usr/share/cadwallader/config/config.yml"]
+          resources:
+            limits:
+              memory: "90Mi"
+            requests:
+              memory: "30Mi"
+          ports:
+            - containerPort: 8100
+          env:
+            - name: ELASTIC_USERNAME
+              value: elastic
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: password
+          volumeMounts:
+          - name: config
+            mountPath: /usr/share/cadwallader/config/config.yml
+            readOnly: true
+            subPath: config.yml
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 0444
+          name: cadwallader-config
