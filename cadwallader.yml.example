@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: cadwallader
-          image: gcr.io/proton-270018/cadwallader:ff4454254056934a8fb026002b11b913d89b4a46
+          image: protonai/cadwallader:latest
           command: ["./main"]
           args: ["-c", "/usr/share/cadwallader/config/config.yml"]
           resources:
