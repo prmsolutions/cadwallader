@@ -18,6 +18,8 @@ import (
 )
 
 type StatusResponse struct {
+	Name string
+	LogoURL string
 	Services []StatusBlob
 }
 
@@ -169,7 +171,7 @@ func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	response := StatusResponse{}
+	response := StatusResponse{Name: config.Metadata.Name, LogoURL: config.Metadata.LogoURL}
 
 	for _, service := range config.Services {
 		serviceBlob := computeServiceUptime(service.Name, service.Index)
@@ -185,7 +187,7 @@ func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
 
 func printMessage(w http.ResponseWriter, r *http.Request) {
 	config := configuration.loadConfig(configPath)
-	response := StatusResponse{}
+	response := StatusResponse{Name: config.Metadata.Name, LogoURL: config.Metadata.LogoURL}
 
 	for _, service := range config.Services {
 		serviceBlob := computeServiceUptime(service.Name, service.Index)

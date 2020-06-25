@@ -4,7 +4,8 @@
     <title>Hello</title>
 </head>
 <body>
-    <h1>Hello, world</h1>
+    <img src="{{ .LogoURL }}">
+    <h1>{{ .Name }}</h1>
     {{range .Services}}
         <h2>{{.ServiceName}}</h2>
         <p>{{ .Status }}</p>

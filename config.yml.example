@@ -4,6 +4,9 @@ elasticsearch:
 server:
   hostname: localhost
   port: 8100
+metadata:
+  name: Acme Corp
+  logoURL: http://localhost/image.png
 services:
   - name: myservice.com
     index: heartbeat*

@@ -15,6 +15,10 @@ type Config struct {
 		Hostname string `yaml:"hostname"`
 		Port     string `yaml:"port"`
 	}
+	Metadata struct {
+		Name string `yaml:"name"`
+		LogoURL string `yaml:"logoURL"`
+	}
 	Services []Service
 }
 
