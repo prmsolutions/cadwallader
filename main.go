@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/mux"
@@ -38,7 +37,6 @@ type Service struct {
 }
 
 var configuration Config
-var configPath string
 
 func main() {
 	r := mux.NewRouter()
@@ -46,11 +44,7 @@ func main() {
 	r.HandleFunc("/status", getStatusCheckData)
 	r.Use(loggingMiddleware)
 
-	configPtr := flag.String("c", "config.yml", "path to the configuration file")
-	flag.Parse()
-	configPath = *configPtr
-
-	config := configuration.loadConfig(configPath)
+	config := configuration.loadConfig()
 
 	serverAddress := fmt.Sprintf("%s:%s", config.Server.Hostname, config.Server.Port)
 	fmt.Printf("Starting server @ %s\n", serverAddress)
@@ -68,7 +62,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func createEsClient() *elastic.Client {
-	config := configuration.loadConfig(configPath)
+	config := configuration.loadConfig()
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -96,7 +90,7 @@ func createEsClient() *elastic.Client {
 }
 
 func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
-	config := configuration.loadConfig(configPath)
+	config := configuration.loadConfig()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

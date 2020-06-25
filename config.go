@@ -18,8 +18,8 @@ type Config struct {
 	Services []Service
 }
 
-func (config *Config) loadConfig(path string) *Config {
-	configData, err := ioutil.ReadFile(path)
+func (config *Config) loadConfig() *Config {
+	configData, err := ioutil.ReadFile("config.yml")
 
 	err = yaml.Unmarshal(configData, &config)
 
