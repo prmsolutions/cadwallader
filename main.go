@@ -18,8 +18,8 @@ import (
 )
 
 type StatusResponse struct {
-	Name string
-	LogoURL string
+	Name     string
+	LogoURL  string
 	Services []StatusBlob
 }
 
@@ -35,9 +35,13 @@ type StatusReport struct {
 	Down      int64     `json:"down"`
 }
 
-type Service struct {
-	Name  string `yaml:"name"`
-	Index string `yaml:"index"`
+type Status struct {
+	Url struct {
+		Name string `json:"domain"`
+	}
+	Monitor struct {
+		Status string `json:"status"`
+	}
 }
 
 var configuration Config
@@ -50,10 +54,10 @@ func main() {
 	r.Use(loggingMiddleware)
 
 	configPtr := flag.String("c", "config.yml", "path to the configuration file")
- 	flag.Parse()
- 	configPath = *configPtr
+	flag.Parse()
+	configPath = *configPtr
 
- 	config := configuration.loadConfig(configPath)
+	config := configuration.loadConfig(configPath)
 
 	serverAddress := fmt.Sprintf("%s:%s", config.Server.Hostname, config.Server.Port)
 	fmt.Printf("Starting server @ %s\n", serverAddress)
@@ -117,20 +121,54 @@ func computeServiceUptime(domain string, index string) StatusBlob {
 		Query(boolQuery).
 		Aggregation("time", timeAgg).
 		Size(0).
-		Pretty(true).
+		Pretty(false).
 		Do(ctx)
 
 	if err != nil {
 		panic(err)
 	}
 
+	status := computeServiceStatus(domain, index)
+
 	response := StatusBlob{}
-	response.Status = "up"
+	response.Status = status.Monitor.Status
 	response.ServiceName = domain
 
 	parseResult(result, &response)
 
 	return response
+}
+
+func computeServiceStatus(domain string, index string) Status {
+	es := createEsClient()
+	ctx := context.Background()
+
+	matchQuery := elastic.NewTermQuery("url.domain", domain)
+	sort := elastic.NewFieldSort("@timestamp").Desc()
+
+	boolQuery := elastic.NewBoolQuery()
+	boolQuery.Must(matchQuery) //, rangeQuery)
+
+	result, err := es.Search().
+		Index(index).
+		Query(boolQuery).
+		SortBy(sort).
+		Size(1).
+		Pretty(false).
+		Do(ctx)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var status Status
+	err = json.Unmarshal(result.Hits.Hits[0].Source, &status)
+	if err != nil {
+		fmt.Printf("Unmarshal failed: %v\n", err)
+		panic(err)
+	}
+
+	return status
 }
 
 func parseResult(result *elastic.SearchResult, response *StatusBlob) {

@@ -16,10 +16,15 @@ type Config struct {
 		Port     string `yaml:"port"`
 	}
 	Metadata struct {
-		Name string `yaml:"name"`
+		Name    string `yaml:"name"`
 		LogoURL string `yaml:"logoURL"`
 	}
 	Services []Service
+}
+
+type Service struct {
+	Name  string `yaml:"name"`
+	Index string `yaml:"index"`
 }
 
 func (config *Config) loadConfig(path string) *Config {
@@ -28,7 +33,7 @@ func (config *Config) loadConfig(path string) *Config {
 	err = yaml.Unmarshal(configData, &config)
 
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		fmt.Printf("error: %+v", err)
 	}
 
 	return config
