@@ -19,7 +19,7 @@ blocks:
         - name: Push GCR
           commands:
             - checkout
-            - 'docker build -t cadwallader:latest -t $GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA . --build-arg COMMIT=$SEMAPHORE_GIT_SHA --build-arg BRANCH=$SEMAPHORE_GIT_BRANCH .'
+            - 'docker build -t cadwallader:latest -t $GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA -f Dockerfile --build-arg COMMIT=$SEMAPHORE_GIT_SHA --build-arg BRANCH=$SEMAPHORE_GIT_BRANCH .'
             - gcloud auth activate-service-account --key-file=/home/semaphore/.secrets/gcp.json
             - gcloud auth configure-docker -q
             - 'docker push $GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA'
