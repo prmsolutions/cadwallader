@@ -9,7 +9,7 @@ blocks:
             - checkout
             - gcloud auth activate-service-account --project=proton-270018  --key-file=/home/semaphore/.secrets/gcp.json
             - gcloud container clusters get-credentials gluon --region us-east1 --project proton-270018
-            - 'kubectl --record deployment.apps/cadwallader -n production set image gluon=$GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA'
+            - 'kubectl --record deployment.apps/cadwallader -n production set image cadwallader=$GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA'
             - kubectl rollout status deployment.apps/cadwallader -n production
       secrets:
         - name: gcp-credentials
