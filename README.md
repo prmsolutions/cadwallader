@@ -1,6 +1,8 @@
 # Cadwallader
 An ELK-adjacent public status page
 
+![Build status](https://protonai.semaphoreci.com/badges/cadwallader.svg)
+
 ## Welcome
 
 We use the Elasticsearch-Logstash-Kibana stack almost exclusively for our internal monitoring. It's also nice to provide users with a status page to help them self-diagnose issues and build confidence in our systems.
