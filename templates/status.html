@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello</title>
+    <title>{{ .Name }} System Status</title>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;700;900&display=swap" rel="stylesheet"> 
     <script>
         var _services = {{ .Services }}
@@ -161,6 +161,9 @@
                 <div class="uptime-graph"></div>
             </div>
             {{ end }}
+        </div>
+        <div id="sosumi">
+            This status page is powered by the <a href="https://github.com/prmsolutions/cadwallader">Cadwallader project</a> from <a href="https://proton.ai">Proton</a>.
         </div>
     </div>
     <script>
