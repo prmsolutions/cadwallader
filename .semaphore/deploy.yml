@@ -1,0 +1,25 @@
+version: v1.0
+name: deploy
+blocks:
+  - name: Deploy Production
+    task:
+      jobs:
+        - name: Deploy
+          commands:
+            - checkout
+            - gcloud auth activate-service-account --project=proton-270018  --key-file=/home/semaphore/.secrets/gcp.json
+            - gcloud container clusters get-credentials gluon --region us-east1 --project proton-270018
+            - 'kubectl --record deployment.apps/cadwallader -n production set image cadwallader=$GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA'
+            - kubectl rollout status deployment.apps/cadwallader -n production
+      secrets:
+        - name: gcp-credentials
+      env_vars:
+        - name: GCR_REGISTRY
+          value: gcr.io/proton-270018/cadwallader
+        - name: KUBECONFIG
+          value: /home/semaphore/.kube/config
+    dependencies: []
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
