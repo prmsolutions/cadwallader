@@ -150,7 +150,8 @@
         <div id="logo">
             <img src="{{ .LogoURL }}">
         </div>
-        <!-- <h1 id="page-title">{{ .Name }}</h1> -->
+        <div id="global">
+        </div>
         <div id="services">
             {{ range .Services }}
             <div class="service" data-name="{{ .ServiceName }}">
@@ -177,6 +178,26 @@
         var yellow = { r: 255, g: 200, b: 0 }
         var red = { r: 243, g: 99, b: 63 }
 
+        function getGlobalStatus () {
+            var uniqueStatuses = new Set(_services.map(_ => _.status))
+            
+            switch (uniqueStatuses.size) {
+                case 2:
+                    document.querySelector("#global").value = "Some disruption"
+                    break
+                case 1:
+                    if (uniqueStatuses.has("up")) {
+                        document.querySelector("#global").innerHTML = "All systems operational"
+                    }
+                    else {
+                        document.querySelector("#global").innerHTML = "All systems disrupted"
+                    }
+                    break
+                default:
+                    document.querySelector("#global").value = "Unable to compute status"
+            }
+        }
+
         function getColorDifference (colorA, colorB, percent) {
             return {
                 red: colorB.r + percent * (colorA.r - colorB.r),
@@ -198,6 +219,8 @@
                 return getColorDifference (yellow, red, percent)
             }
         }
+
+        getGlobalStatus()
 
         for (var service of _services) {
             var serviceGraph = document.querySelector('.service[data-name=' + service.serviceName + '] .uptime-graph')
