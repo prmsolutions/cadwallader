@@ -7,6 +7,11 @@ agent:
 blocks:
   - name: Build
     task:
+      secrets:
+        - name: gcp-credentials
+      env_vars:
+        - name: GCR_REGISTRY
+          value: gcr.io/proton-270018/cadwallader
       prologue:
         commands:
           - checkout
