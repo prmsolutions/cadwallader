@@ -15,7 +15,7 @@ blocks:
         - name: gcp-credentials
       env_vars:
         - name: GCR_REGISTRY
-          value: gcr.io/proton-270018/gluon
+          value: gcr.io/proton-270018/cadwallader
         - name: KUBECONFIG
           value: /home/semaphore/.kube/config
     dependencies: []
