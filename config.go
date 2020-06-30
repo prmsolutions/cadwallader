@@ -24,6 +24,7 @@ type Config struct {
 
 type Service struct {
 	Name  string `yaml:"name"`
+	Domain  string `yaml:"domain"`
 	Index string `yaml:"index"`
 }
 

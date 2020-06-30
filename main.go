@@ -59,6 +59,8 @@ func main() {
 
 	config := configuration.loadConfig(configPath)
 
+	// r.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	serverAddress := fmt.Sprintf("%s:%s", config.Server.Hostname, config.Server.Port)
 	fmt.Printf("Starting server @ %s\n", serverAddress)
 
@@ -101,23 +103,24 @@ func createEsClient() *elastic.Client {
 	return es
 }
 
-func computeServiceUptime(domain string, index string) StatusBlob {
+func computeServiceUptime(service Service) StatusBlob {
 	es := createEsClient()
 	ctx := context.Background()
 
-	matchQuery := elastic.NewTermQuery("url.domain", domain)
-	rangeQuery := elastic.NewRangeQuery("@timestamp").Gt("now-7d")
+	matchQuery := elastic.NewTermQuery("url.domain", service.Domain)
+	rangeQuery := elastic.NewRangeQuery("@timestamp").Gt("now-14d")
 
 	boolQuery := elastic.NewBoolQuery()
 	boolQuery.Must(matchQuery, rangeQuery)
 
 	statusAgg := elastic.NewTermsAggregation().Field("monitor.status")
-	timeAgg := elastic.NewAutoDateHistogramAggregation().
+	timeAgg := elastic.NewDateHistogramAggregation().
 		Field("@timestamp").
+		Interval("3h").
 		SubAggregation("status", statusAgg)
 
 	result, err := es.Search().
-		Index(index).
+		Index(service.Index).
 		Query(boolQuery).
 		Aggregation("time", timeAgg).
 		Size(0).
@@ -128,29 +131,29 @@ func computeServiceUptime(domain string, index string) StatusBlob {
 		panic(err)
 	}
 
-	status := computeServiceStatus(domain, index)
+	status := computeServiceStatus(service)
 
 	response := StatusBlob{}
 	response.Status = status.Monitor.Status
-	response.ServiceName = domain
+	response.ServiceName = service.Name
 
 	parseResult(result, &response)
 
 	return response
 }
 
-func computeServiceStatus(domain string, index string) Status {
+func computeServiceStatus(service Service) Status {
 	es := createEsClient()
 	ctx := context.Background()
 
-	matchQuery := elastic.NewTermQuery("url.domain", domain)
+	matchQuery := elastic.NewTermQuery("url.domain", service.Domain)
 	sort := elastic.NewFieldSort("@timestamp").Desc()
 
 	boolQuery := elastic.NewBoolQuery()
 	boolQuery.Must(matchQuery) //, rangeQuery)
 
 	result, err := es.Search().
-		Index(index).
+		Index(service.Index).
 		Query(boolQuery).
 		SortBy(sort).
 		Size(1).
@@ -212,7 +215,7 @@ func getStatusCheckData(w http.ResponseWriter, r *http.Request) {
 	response := StatusResponse{Name: config.Metadata.Name, LogoURL: config.Metadata.LogoURL}
 
 	for _, service := range config.Services {
-		serviceBlob := computeServiceUptime(service.Name, service.Index)
+		serviceBlob := computeServiceUptime(service)
 		response.Services = append(response.Services, serviceBlob)
 	}
 
@@ -228,7 +231,7 @@ func printMessage(w http.ResponseWriter, r *http.Request) {
 	response := StatusResponse{Name: config.Metadata.Name, LogoURL: config.Metadata.LogoURL}
 
 	for _, service := range config.Services {
-		serviceBlob := computeServiceUptime(service.Name, service.Index)
+		serviceBlob := computeServiceUptime(service)
 		response.Services = append(response.Services, serviceBlob)
 	}
 

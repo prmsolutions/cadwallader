@@ -2,18 +2,216 @@
 <html>
 <head>
     <title>Hello</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;700;900&display=swap" rel="stylesheet"> 
+    <script>
+        var _services = {{ .Services }}
+    </script>
+    <style>
+        /* http://meyerweb.com/eric/tools/css/reset/ 
+        v2.0 | 20110126
+        License: none (public domain)
+        */
+
+        html, body, div, span, applet, object, iframe,
+        h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+        a, abbr, acronym, address, big, cite, code,
+        del, dfn, em, img, ins, kbd, q, s, samp,
+        small, strike, strong, sub, sup, tt, var,
+        b, u, i, center,
+        dl, dt, dd, ol, ul, li,
+        fieldset, form, label, legend,
+        table, caption, tbody, tfoot, thead, tr, th, td,
+        article, aside, canvas, details, embed, 
+        figure, figcaption, footer, header, hgroup, 
+        menu, nav, output, ruby, section, summary,
+        time, mark, audio, video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline;
+        }
+        /* HTML5 display-role reset for older browsers */
+        article, aside, details, figcaption, figure, 
+        footer, header, hgroup, menu, nav, section {
+            display: block;
+        }
+        body {
+            line-height: 1;
+        }
+        ol, ul {
+            list-style: none;
+        }
+        blockquote, q {
+            quotes: none;
+        }
+        blockquote:before, blockquote:after,
+        q:before, q:after {
+            content: '';
+            content: none;
+        }
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+    </style>
+    <style>
+        html, body {
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+
+            background-color: #fafafa;
+        }
+
+        #content {
+            margin: 0 auto;
+            padding: 0 2rem;
+            max-width: 1200px;
+        }
+
+        #logo {
+            margin: 3rem 0;
+            height: 4rem;
+        }
+
+        #logo img {
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
+        }
+
+        #page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        #services {
+            background-color: #fff;
+            border-radius: .25rem;
+            border: 1px solid #eaeaea;
+            box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, .05);
+        }
+
+        .service {
+            padding: 2rem;
+        }
+        
+        .service + .service {
+            border-top: 1px solid #eaeaea;
+        }
+
+        .service .name {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .service .status {
+            position: relative;
+            height: 1rem;
+            width: 1rem;
+            top: 1px;
+
+            margin-right: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .service .status.up {
+            background-color: #51D733;
+        }
+
+        .service .status.down {
+            background-color: #F04419;
+        }
+
+        .service .uptime-graph {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(1px, 1fr));
+            grid-gap: 0.25rem;
+
+            padding: 0;
+            list-style: none;
+        }
+
+        .service .uptime-graph div {
+            height: 3rem;
+            border-radius: 1px;
+        }
+    </style>
 </head>
 <body>
-    <img src="{{ .LogoURL }}">
-    <h1>{{ .Name }}</h1>
-    {{range .Services}}
-        <h2>{{.ServiceName}}</h2>
-        <p>{{ .Status }}</p>
-        <ul>
-            {{ range .History}}
-            <li>{{ .Timestamp }}: Up: {{ .Up }} and {{ .Down }}</li>
+    <div id="content">
+        <div id="logo">
+            <img src="{{ .LogoURL }}">
+        </div>
+        <!-- <h1 id="page-title">{{ .Name }}</h1> -->
+        <div id="services">
+            {{ range .Services }}
+            <div class="service" data-name="{{ .ServiceName }}">
+                <div class="name">
+                    <div class="status {{ .Status }}"></div>
+                    <h2>{{ .ServiceName }}</h2>
+                </div>
+                <div class="uptime-graph"></div>
+            </div>
             {{ end }}
-        </ul>
-    {{end}}
+        </div>
+    </div>
+    <script>
+        // green: #A8EB99
+        // yellow: #FFC800
+        // red: #F3633F
+
+        console.log(_services)
+        
+        var green = { r: 168, g: 235, b: 153 }
+        var yellow = { r: 255, g: 200, b: 0 }
+        var red = { r: 243, g: 99, b: 63 }
+
+        function getColorDifference (colorA, colorB, percent) {
+            return {
+                red: colorB.r + percent * (colorA.r - colorB.r),
+                green: colorB.g + percent * (colorA.g - colorB.g),
+                blue: colorB.b + percent * (colorA.b - colorB.b)
+            }
+        }
+
+        function getColor (percent) {
+            if (percent > 1) percent = 1
+
+            if (percent > 0.5) {
+                // scale to 1
+                percent = percent * 2 - 1
+                return getColorDifference (green, yellow, percent)
+            } else {
+                // scale to 1
+                percent = percent * 2
+                return getColorDifference (yellow, red, percent)
+            }
+        }
+
+        for (var service of _services) {
+            var serviceGraph = document.querySelector('.service[data-name=' + service.serviceName + '] .uptime-graph')
+
+            for (var tick of service.history) {
+                var elDataPoint = document.createElement('div')
+                elDataPoint.className = 'uptime-tick'
+
+                // calculate uptime percent and get color
+                var uptimePercent = tick.up / (tick.up + tick.down)
+                var statusColor = getColor(uptimePercent)
+                
+                elDataPoint.style.backgroundColor = 'rgba(' + statusColor.red + ', ' + statusColor.green + ', ' + statusColor.blue + ', 1)'
+                
+                serviceGraph.appendChild(elDataPoint)
+            }
+        }
+    </script>
 </body>
 </html>
