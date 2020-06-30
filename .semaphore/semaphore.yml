@@ -1,5 +1,5 @@
 version: v1.0
-name: First pipeline
+name: Pipeline
 agent:
   machine:
     type: e1-standard-2
@@ -11,6 +11,13 @@ blocks:
         commands:
           - checkout
       jobs:
-        - name: Try to build
+        - name: Push GCR
           commands:
-            - docker build .
+            - checkout
+            - 'docker build -t cadwallader:latest -t $GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA . --build-arg COMMIT=$SEMAPHORE_GIT_SHA --build-arg BRANCH=$SEMAPHORE_GIT_BRANCH .'
+            - gcloud auth activate-service-account --key-file=/home/semaphore/.secrets/gcp.json
+            - gcloud auth configure-docker -q
+            - 'docker push $GCR_REGISTRY:$SEMAPHORE_GIT_BRANCH-$SEMAPHORE_GIT_SHA'
+promotions:
+  - name: Deploy
+    pipeline_file: deploy.yml
