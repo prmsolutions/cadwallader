@@ -183,7 +183,7 @@
             
             switch (uniqueStatuses.size) {
                 case 2:
-                    document.querySelector("#global").value = "Some disruption"
+                    document.querySelector("#global").innerHTML = "Some disruption"
                     break
                 case 1:
                     if (uniqueStatuses.has("up")) {
@@ -194,7 +194,7 @@
                     }
                     break
                 default:
-                    document.querySelector("#global").value = "Unable to compute status"
+                    document.querySelector("#global").innerHTML = "Unable to compute status"
             }
         }
 
