@@ -25,6 +25,7 @@ type StatusResponse struct {
 
 type StatusBlob struct {
 	ServiceName string         `json:"serviceName"`
+	Domain      string         `json:"domain"`
 	Status      string         `json:"status"`
 	History     []StatusReport `json:"history"`
 }
@@ -136,6 +137,7 @@ func computeServiceUptime(service Service) StatusBlob {
 	response := StatusBlob{}
 	response.Status = status.Monitor.Status
 	response.ServiceName = service.Name
+	response.Domain = service.Domain
 
 	parseResult(result, &response)
 

@@ -207,7 +207,7 @@
                 <h2 class="text"></h2>
             </div>
             {{ range .Services }}
-            <div class="service" data-name="{{ .ServiceName }}">
+            <div class="service" data-name="{{ .Domain }}">
                 <div class="name">
                     <div class="status-icon {{ .Status }}"></div>
                     <h2>{{ .ServiceName }}</h2>
@@ -282,7 +282,7 @@
         getGlobalStatus()
 
         for (var service of _services) {
-            var serviceGraph = document.querySelector('.service[data-name=' + service.serviceName + '] .uptime-graph')
+            var serviceGraph = document.querySelector('.service[data-name="' + service.domain + '"] .uptime-graph')
 
             for (var tick of service.history) {
                 var elDataPoint = document.createElement('div')
