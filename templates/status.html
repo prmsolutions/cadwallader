@@ -61,18 +61,36 @@
             font-family: 'Source Sans Pro', sans-serif;
             font-size: 16px;
 
+            color: #333;
             background-color: #fafafa;
+        }
+
+        a {
+            text-decoration: none;
+            color: #3C76B9;
+            transition: color 150ms;
+        }
+
+        a:hover {
+            color: #274C77;
         }
 
         #content {
             margin: 0 auto;
             padding: 0 2rem;
-            max-width: 1200px;
+            max-width: 1000px;
+        }
+
+        #header {
+            display: flex;
+            align-items: center;
+            height: 2.5rem;
+            padding: 3rem 2rem;
         }
 
         #logo {
-            margin: 3rem 0;
-            height: 4rem;
+            height: 100%;
+            width: auto;
         }
 
         #logo img {
@@ -81,17 +99,67 @@
             height: 100%;
         }
 
-        #page-title {
+        #title {
+            margin-left: 1rem;
+
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 900;
+        }
+
+        #global-status {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem 2rem;
+
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+
+            border-bottom: 1px solid #eaeaea;
+            box-shadow: 0px 0 5px 0 rgba(0, 0, 0, 0.2);
         }
 
         #services {
             background-color: #fff;
-            border-radius: .25rem;
+            border-radius: .3rem;
             border: 1px solid #eaeaea;
             box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, .05);
+            overflow: hidden;
+        }
+
+        #sosumi {
+            padding: 1.25rem 2rem;
+            text-align: right;
+            font-size: .9rem;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .status-icon {
+            position: relative;
+            height: 1rem;
+            width: 1rem;
+            top: 1px;
+
+            margin-right: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .up {
+            background-color: #0EAD69;
+        }
+
+        .down {
+            background-color: #EE4266;
+        }
+
+        .partial {
+            background-color: #FFD23F;
+        }
+
+        .unknown {
+            background-color: #607196;
         }
 
         .service {
@@ -107,27 +175,8 @@
             align-items: center;
             margin-bottom: 1rem;
 
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            color: #333;
-        }
-
-        .service .status {
-            position: relative;
-            height: 1rem;
-            width: 1rem;
-            top: 1px;
-
-            margin-right: 0.5rem;
-            border-radius: 50%;
-        }
-
-        .service .status.up {
-            background-color: #51D733;
-        }
-
-        .service .status.down {
-            background-color: #F04419;
         }
 
         .service .uptime-graph {
@@ -147,16 +196,20 @@
 </head>
 <body>
     <div id="content">
-        <div id="logo">
-            <img src="{{ .LogoURL }}">
-        </div>
-        <div id="global">
+        <div id="header">
+            <div id="logo">
+                <img src="{{ .LogoURL }}">
+            </div>
+            <div id="title">{{ .Name }} System Status</div>
         </div>
         <div id="services">
+            <div id="global-status">
+                <h2 class="text"></h2>
+            </div>
             {{ range .Services }}
             <div class="service" data-name="{{ .ServiceName }}">
                 <div class="name">
-                    <div class="status {{ .Status }}"></div>
+                    <div class="status-icon {{ .Status }}"></div>
                     <h2>{{ .ServiceName }}</h2>
                 </div>
                 <div class="uptime-graph"></div>
@@ -164,37 +217,43 @@
             {{ end }}
         </div>
         <div id="sosumi">
-            This status page is powered by the <a href="https://github.com/prmsolutions/cadwallader">Cadwallader project</a> from <a href="https://proton.ai">Proton</a>.
+            This status page is powered by the <a href="https://github.com/prmsolutions/cadwallader">Cadwallader project</a> from <a href="https://proton.ai">Proton</a>
         </div>
     </div>
     <script>
-        // green: #A8EB99
-        // yellow: #FFC800
-        // red: #F3633F
+        // green: #06D6A0
+        // yellow: #FFD166
+        // red: #EF476F
 
         console.log(_services)
         
-        var green = { r: 168, g: 235, b: 153 }
-        var yellow = { r: 255, g: 200, b: 0 }
-        var red = { r: 243, g: 99, b: 63 }
+        var green = { r: 66, g: 240, b: 165 }
+        var yellow = { r: 255, g: 226, b: 133 }
+        var red = { r: 240, g: 106, b: 135 }
 
         function getGlobalStatus () {
             var uniqueStatuses = new Set(_services.map(_ => _.status))
+            var globalStatus = document.querySelector('#global-status')
+            var globalStatusText = document.querySelector('#global-status .text')
             
             switch (uniqueStatuses.size) {
                 case 2:
-                    document.querySelector("#global").innerHTML = "Some disruption"
+                    globalStatusText.innerHTML = 'Some disruption'
+                    globalStatus.className = 'partial'
                     break
                 case 1:
-                    if (uniqueStatuses.has("up")) {
-                        document.querySelector("#global").innerHTML = "All systems operational"
+                    if (uniqueStatuses.has('up')) {
+                        globalStatusText.innerHTML = 'All systems operational'
+                        globalStatus.className = 'up'
                     }
                     else {
-                        document.querySelector("#global").innerHTML = "All systems disrupted"
+                        globalStatusText.innerHTML = 'All systems disrupted'
+                        globalStatus.className = 'down'
                     }
                     break
                 default:
-                    document.querySelector("#global").innerHTML = "Unable to compute status"
+                    globalStatusText.innerHTML = 'Unable to compute status'
+                    globalStatus.className = 'unknown'
             }
         }
 
