@@ -117,7 +117,7 @@ func computeServiceUptime(service Service) StatusBlob {
 	statusAgg := elastic.NewTermsAggregation().Field("monitor.status")
 	timeAgg := elastic.NewDateHistogramAggregation().
 		Field("@timestamp").
-		Interval("3h").
+		Interval("4h").
 		SubAggregation("status", statusAgg)
 
 	result, err := es.Search().
