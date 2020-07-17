@@ -12,10 +12,17 @@ data:
       hostname: localhost
       port: 9200
     server:
-      hostname: localhost
+      hostname: 0.0.0.0
       port: 8100
+    metadata:
+      name: Acme Tile
+      logoURL: "https://acmetile.com/logo.png"
     services:
-      - name: example.com
+      - name: Frontend
+        domain: frontend.acmetile.com
+        index: heartbeat*
+      - name: Backend
+        domain: frontend.acmetile.com
         index: heartbeat*
 ---
 apiVersion: apps/v1

@@ -2,11 +2,15 @@ elasticsearch:
   hostname: localhost
   port: 9200
 server:
-  hostname: localhost
+  hostname: 0.0.0.0
   port: 8100
 metadata:
-  name: Acme Corp
-  logoURL: http://localhost/image.png
+  name: Acme Tile
+  logoURL: "https://acmetile.com/logo.png"
 services:
-  - name: myservice.com
+  - name: Frontend
+    domain: frontend.acmetile.com
+    index: heartbeat*
+  - name: Backend
+    domain: frontend.acmetile.com
     index: heartbeat*
