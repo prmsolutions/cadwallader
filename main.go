@@ -60,8 +60,6 @@ func main() {
 
 	config := configuration.loadConfig(configPath)
 
-	// r.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
 	serverAddress := fmt.Sprintf("%s:%s", config.Server.Hostname, config.Server.Port)
 	fmt.Printf("Starting server @ %s\n", serverAddress)
 
@@ -152,7 +150,7 @@ func computeServiceStatus(service Service) Status {
 	sort := elastic.NewFieldSort("@timestamp").Desc()
 
 	boolQuery := elastic.NewBoolQuery()
-	boolQuery.Must(matchQuery) //, rangeQuery)
+	boolQuery.Must(matchQuery)
 
 	result, err := es.Search().
 		Index(service.Index).
