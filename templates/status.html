@@ -260,7 +260,7 @@
             
             switch (uniqueStatuses.size) {
                 case 2:
-                    globalStatusText.innerHTML = 'Some disruption'
+                    globalStatusText.innerHTML = 'Some disruption, engineers have been notified'
                     globalStatus.className = 'partial'
                     break
                 case 1:
@@ -269,7 +269,7 @@
                         globalStatus.className = 'up'
                     }
                     else {
-                        globalStatusText.innerHTML = 'All systems disrupted'
+                        globalStatusText.innerHTML = 'All systems disrupted, engineers have been notified'
                         globalStatus.className = 'down'
                     }
                     break
